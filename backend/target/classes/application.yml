@@ -1,8 +1,28 @@
 server:
   port: 8080
 
+spring:
+  application:
+    name: decisiontool
+  profiles:
+    active: dev
+  codec:
+    max-in-memory-size: 10MB
+
 management:
   endpoints:
     web:
       exposure:
         include: health,info,mappings
+
+denodo:
+  base-url: ${DENODO_BASE_URL:http://localhost:8008}
+  username: ${DENODO_USERNAME:admin}
+  password: ${DENODO_PASSWORD:admin}
+  timeout-seconds: 30
+  max-retries: 2
+
+logging:
+  level:
+    com.decisiontool: DEBUG
+    org.springframework.web.reactive: INFO
