@@ -107,3 +107,9 @@
 .hero-section h2{
     font-size: 1.4rem;
 }
+
+.analytics-section {
+    padding: 60px 0;
+    
+    color: #009970;
+}

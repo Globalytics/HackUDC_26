@@ -115,11 +115,12 @@ section.py-5 {
 
 .datasets-section {
     padding: 60px 0;
+    color: #c9bd13;
 }
 
 .datasets-section h2 {
     font-size: 2rem;
-    color: #009970;
+     color: #009970;
     margin-bottom: 20px;
 }
 

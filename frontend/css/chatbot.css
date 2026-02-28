@@ -1,7 +1,4 @@
-
-
-
-
+/* Navbar */
 .navbar{
     background-color: #fff;
     height: 80px;
@@ -9,7 +6,6 @@
     border-radius: 16px;
     padding: 0.5rem;
 }
-
 
 .navbar-brand{
     font-weight: 500;
@@ -74,14 +70,15 @@
         width: 100%;
         visibility: visible;
     }
-
 }
 
+/* Hero Section */
 .hero-section {
-    background: url(../assets/img/fondo.jpg)no-repeat center;
+    background: url(../assets/img/fondo.jpg) no-repeat center;
     background-size: cover;
     width: 100%;
     opacity: 0.8;
+    position: relative;
 }
 
 .hero-section::before {
@@ -106,7 +103,7 @@
     max-width: 800px;
 }
 
-
+/* Chat Section */
 .chat-section {
     background-color: #f0f5f5;
     min-height: 80vh;
@@ -115,11 +112,46 @@
     justify-content: center;
 }
 
-.chat-section label {
-    font-weight: 600;
-    color: #333;
+/* Dataset selector + refresh */
+.dataset-container {
+    display: flex;
+    align-items: center;
+    gap: 15px; /* espacio entre select y botón */
+    margin-bottom: 1rem;
 }
 
+.dataset-container .form-label {
+    min-width: 120px; /* ancho fijo */
+    margin-bottom: 0;
+}
+
+#datasetSelect {
+    height: 42px; /* igual altura que botón */
+    border-radius: 10px;
+    padding: 0.35rem 0.75rem;
+    font-size: 1rem;
+    border: 1px solid #d1d5db;
+    background: #f8f9fa;
+}
+
+#refreshDatasets {
+    height: 42px; /* igual altura que select */
+    padding: 0 16px;
+    border-radius: 20px;
+    font-weight: 600;
+    background-color: #009970;
+    color: #fff;
+    border: none;
+    transition: 0.2s;
+}
+
+#refreshDatasets:hover {
+    background-color: #00b383;
+    transform: translateY(-1px);
+    box-shadow: 0 6px 14px rgba(0,0,0,0.2);
+}
+
+/* Contenedor de mensajes */
 .chatbox {
     height: 400px; 
     overflow-y: auto;
@@ -127,41 +159,76 @@
     border-radius: 15px;
     padding: 15px;
     box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    display: flex;
+    flex-direction: column;
 }
 
+/* Mensajes animados */
 .message {
     margin-bottom: 10px;
     padding: 10px 15px;
     border-radius: 20px;
     max-width: 70%;
     word-wrap: break-word;
+    font-size: 14px;
+    opacity: 0;
+    transform: translateX(50px);
+    animation: slideIn 0.35s forwards;
 }
 
+/* Mensajes bot (izquierda) */
 .message.bot {
     background-color: #e2f5f1;
     color: #00594d;
     align-self: flex-start;
+    transform: translateX(-50px);
 }
 
+/* Mensajes usuario (derecha) */
 .message.user {
     background-color: #009970;
     color: #fff;
     align-self: flex-end;
 }
 
+/* Animación entrada */
+@keyframes slideIn {
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+/* Formulario de chat */
 #chatForm {
     margin-top: 15px;
+    display: flex;
+    gap: 10px;
 }
 
 #userInput {
     border-radius: 20px;
+    padding: 10px 15px;
+    border: 1px solid #d1d5db;
+    flex: 1;
 }
 
 #chatForm button {
     border-radius: 20px;
+    padding: 10px 20px;
+    font-weight: 600;
+    background-color: #009970;
+    color: #fff;
+    border: none;
+    transition: 0.2s;
 }
 
+#chatForm button:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 6px 14px rgba(0,0,0,0.2);
+}
 
+/* Scroll personalizado */
 .chatbox::-webkit-scrollbar {
     width: 6px;
 }

@@ -4,7 +4,7 @@ import com.fasterxml.jackson.annotation.JsonAlias;
 
 public class ChatRequest {
 
-    @JsonAlias("message")   // 👈 Permite que "message" se mapee a "question"
+    @JsonAlias("message")  
     private String question;
 
     private String sessionId;
