@@ -50,36 +50,23 @@ function resetChatMessages(container) {
 }
 
 async function loadDatasetsIntoSelect() {
-  const datasetSelect = document.querySelector("#datasetSelect");
+   const datasetSelect = document.querySelector("#datasetSelect");
   const datasetHint = document.querySelector("#datasetHint");
 
-  datasetSelect.innerHTML = `<option value="" selected disabled>Loading datasets...</option>`;
   datasetHint.textContent = "";
 
-  const res = await fetchWithTimeout(`${CONFIG.API_BASE_URL}/datasets`, { method: "GET" });
+  // Datasets fijos
+  const datasets = [
+    { id: "f1_races", name: "f1_races" },
+    { id: "jjoo2024", name: "jjoo2024" }
+  ];
 
-  let data = null;
-  try { data = await res.json(); } catch (_) {}
-
-  if (!res.ok) {
-    const msg = data?.message || `Failed to load datasets (HTTP ${res.status})`;
-    datasetSelect.innerHTML = `<option value="" selected disabled>${msg}</option>`;
-    datasetHint.textContent = "Check backend is running, API_BASE_URL, and CORS.";
-    return;
-  }
-
-  if (!Array.isArray(data) || data.length === 0) {
-    datasetSelect.innerHTML = `<option value="" selected disabled>No datasets available</option>`;
-    datasetHint.textContent = "Upload or register a dataset first.";
-    return;
-  }
-
-  // Build options
   datasetSelect.innerHTML = `<option value="" selected disabled>Choose a dataset</option>`;
-  for (const ds of data) {
+
+  for (const ds of datasets) {
     const opt = document.createElement("option");
-    opt.value = ds.id ?? ds.datasetId ?? ds.name; // fallback if backend uses different key
-    opt.textContent = ds.name ?? ds.id ?? String(opt.value);
+    opt.value = ds.id;
+    opt.textContent = ds.name;
     datasetSelect.appendChild(opt);
   }
 

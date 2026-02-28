@@ -53,7 +53,7 @@
         </div>
       </div>
 
-      <a href="#" class="login-button">Login</a>
+      <a href="https://www.leagueoflegends.com/es-es/" class="login-button">Login</a>
       <button
         class="navbar-toggler pe-0"
         type="button"
@@ -71,23 +71,30 @@
   <section class="hero-section">
     <div class="container d-flex flex-column align-items-center justify-content-center text-white" style="height: 100vh;">
       <h1>Chatbot</h1>
-      <h2>Select a dataset below to start your conversation with the bot.</h2>
+      <h2 align="center">Whether you are evaluating investments, comparing candidates, or exploring strategic options,
+         our system identifies the most relevant datasets, analyzes them, and delivers insights that support confident decision-making.
+          Simply provide the problem and criteria, and let the chatbot uncover the data and guide you toward the best outcome.</h2>
     </div>
   </section>
   <!-- End Hero Section -->
 
   <!-- Chat Section -->
- <section class="chat-section py-5">
+<section class="chat-section py-5">
   <div class="container">
 
     <!-- Dataset selector + Refresh -->
-    <div class="mb-4 d-flex align-items-center">
-      <label for="datasetSelect" class="form-label me-2 mb-0">Select Dataset:</label>
-      <select class="form-select me-2" id="datasetSelect">
-        <option value="" selected disabled>Loading datasets...</option>
+    <div class="mb-4 d-flex align-items-center dataset-container">
+      <label for="datasetSelect" class="form-label mb-0">Select Dataset:</label>
+
+      <select class="form-select" id="datasetSelect">
+        <option value="" disabled>Select a dataset</option>
+        <option value="f1_races">f1_races</option>
+        <option value="jjoo2024">jjoo2024</option>
       </select>
-      <button id="refreshDatasets" class="btn btn-outline-primary">Refresh</button>
+
+      <button id="refreshDatasets" class="btn btn-refresh">Refresh</button>
     </div>
+
     <div class="form-text mb-3" id="datasetHint"></div>
 
     <!-- Chatbox -->
