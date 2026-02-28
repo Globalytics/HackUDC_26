@@ -1,13 +1,12 @@
 package com.decisiontool.service;
 
 import com.decisiontool.config.DenodoConfig;
-import com.decisiontool.dto.DenodoDataRequest;
-import com.decisiontool.dto.DenodoDataResponse;
-import com.decisiontool.dto.DenodoMetadataRequest;
-import com.decisiontool.dto.DenodoMetadataResponse;
+import com.decisiontool.dto.*;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.http.HttpStatusCode;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
+import org.springframework.util.StringUtils;
 import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Mono;
 import reactor.util.retry.Retry;
@@ -37,6 +36,18 @@ public class DenodoApiClient {
                 .retryWhen(defaultRetry());
     }
 
+    public Mono<ResponseEntity<String>> getMetadataRaw(String dbsCsv) {
+        return denodoWebClient.get()
+                .uri(uriBuilder -> uriBuilder
+                        .path("/getMetadata")
+                        .queryParam("vdp_database_names", dbsCsv)
+                        .queryParam("incremental", true)
+                        .build()
+                )
+                .retrieve()
+                .toEntity(String.class);
+    }
+
     /** POST /answerQuestion */
     public Mono<String> answerQuestion(Object requestBody) {
         return denodoWebClient.post()
@@ -54,11 +65,25 @@ public class DenodoApiClient {
                 .retryWhen(defaultRetry());
     }
 
-    /** POST /answerDataQuestion */
+    /**
+     * GET /answerDataQuestion (según Swagger)
+     * Fuerza disclaimer=false y check_ambiguity=false.
+     *
+     * NOTA: sólo usamos request.getQuestion() porque tus DTOs no tienen más campos.
+     */
     public Mono<DenodoDataResponse> answerDataQuestion(DenodoDataRequest request) {
-        return denodoWebClient.post()
-                .uri("/answerDataQuestion")
-                .bodyValue(request)
+        if (request == null || !StringUtils.hasText(request.getQuestion())) {
+            return Mono.error(new IllegalArgumentException("DenodoDataRequest.question es obligatorio"));
+        }
+
+        return denodoWebClient.get()
+                .uri(uriBuilder -> uriBuilder
+                        .path("/answerDataQuestion")
+                        .queryParam("question", request.getQuestion())
+                        .queryParam("disclaimer", false)
+                        .queryParam("check_ambiguity", false)
+                        .build()
+                )
                 .retrieve()
                 .onStatus(HttpStatusCode::isError, r -> r.bodyToMono(String.class)
                         .defaultIfEmpty("Denodo /answerDataQuestion error")
@@ -67,11 +92,23 @@ public class DenodoApiClient {
                 .retryWhen(defaultRetry());
     }
 
-    /** POST /answerMetadataQuestion */
+    /**
+     * GET /answerMetadataQuestion (según Swagger)
+     * Fuerza disclaimer=false y check_ambiguity=false.
+     */
     public Mono<DenodoMetadataResponse> answerMetadataQuestion(DenodoMetadataRequest request) {
-        return denodoWebClient.post()
-                .uri("/answerMetadataQuestion")
-                .bodyValue(request)
+        if (request == null || !StringUtils.hasText(request.getQuestion())) {
+            return Mono.error(new IllegalArgumentException("DenodoMetadataRequest.question es obligatorio"));
+        }
+
+        return denodoWebClient.get()
+                .uri(uriBuilder -> uriBuilder
+                        .path("/answerMetadataQuestion")
+                        .queryParam("question", request.getQuestion())
+                        .queryParam("disclaimer", false)
+                        .queryParam("check_ambiguity", false)
+                        .build()
+                )
                 .retrieve()
                 .onStatus(HttpStatusCode::isError, r -> r.bodyToMono(String.class)
                         .defaultIfEmpty("Denodo /answerMetadataQuestion error")
