@@ -43,9 +43,13 @@ public class DenodoApiClient {
                 .uri("/answerQuestion")
                 .bodyValue(requestBody)
                 .retrieve()
-                .onStatus(HttpStatusCode::isError, r -> r.bodyToMono(String.class)
-                        .defaultIfEmpty("Denodo /answerQuestion error")
-                        .flatMap(msg -> Mono.error(new RuntimeException(msg))))
+                .onStatus(HttpStatusCode::isError, r ->
+                        r.bodyToMono(String.class)
+                                .defaultIfEmpty("Sin body")
+                                .flatMap(body -> Mono.error(
+                                        new RuntimeException("Denodo /answerQuestion -> " + r.statusCode() + " | " + body)
+                                ))
+                )
                 .bodyToMono(String.class)
                 .retryWhen(defaultRetry());
     }

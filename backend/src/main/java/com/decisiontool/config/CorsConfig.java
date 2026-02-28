@@ -9,15 +9,9 @@ public class CorsConfig implements WebMvcConfigurer {
 
     @Override
     public void addCorsMappings(CorsRegistry registry) {
-        registry.addMapping("/api/**")
-                .allowedOrigins(
-                    "http://localhost:3000",   // Middleware Node.js
-                    "http://localhost:8080",   // Frontend directo (dev)
-                    "http://localhost:80"      // Nginx
-                )
+        registry.addMapping("/**") // o "/api/**" si quieres restringir
+                .allowedOrigins("http://localhost:5500", "http://127.0.0.1:5500")
                 .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS")
-                .allowedHeaders("*")
-                .allowCredentials(true)
-                .maxAge(3600);
+                .allowedHeaders("*");
     }
 }
