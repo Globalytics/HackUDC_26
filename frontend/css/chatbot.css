@@ -120,12 +120,6 @@
     color: #333;
 }
 
-#datasetSelect {
-    border-radius: 10px;
-    padding: 0.5rem;
-    font-size: 1rem;
-}
-
 .chatbox {
     height: 400px; 
     overflow-y: auto;
