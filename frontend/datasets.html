@@ -1,0 +1,116 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Datasets-Globalytics</title>
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+      integrity="sha384-sRIl4kxILFvY47J16cr9ZwB07vP4J8+LH7qKQnuqkuIAvNWLzeN8tE5YBujZqJLB"
+      crossorigin="anonymous"
+    />
+    <link rel="stylesheet" href="./css/dataset.css" />
+  </head>
+  <body>
+    <!-- Navbar -->
+    <nav class="navbar navbar-expand-lg fixed-top">
+      <div class="container-fluid">
+        <a class="navbar-brand me-auto" href="#">Logo</a>
+
+        <div
+          class="offcanvas offcanvas-end"
+          tabindex="-1"
+          id="offcanvasNavbar"
+          aria-labelledby="offcanvasNavbarLabel"
+        >
+          <div class="offcanvas-header">
+            <h5 class="offcanvas-title" id="offcanvasNavbarLabel">Logo</h5>
+            <button
+              type="button"
+              class="btn-close"
+              data-bs-dismiss="offcanvas"
+              aria-label="Close"
+            ></button>
+          </div>
+          <div class="offcanvas-body">
+            <ul class="navbar-nav justify-content-center flex-grow-1 pe-3">
+              <li class="nav-item">
+                <a class="nav-link mx-lg-2" href="index.html">Home</a>
+              </li>
+              <li class="nav-item">
+                <a class="nav-link mx-lg-2 active" href="#">Datasets</a>
+              </li>
+              <li class="nav-item">
+                <a class="nav-link mx-lg-2" href="chatbot.html">Chatbot</a>
+              </li>
+              <li class="nav-item">
+                <a class="nav-link mx-lg-2" href="analytics.html">Analytics</a>
+              </li>
+            </ul>
+          </div>
+        </div>
+        <a href="#" class="login-button">Login</a>
+        <button
+          class="navbar-toggler pe-0"
+          type="button"
+          data-bs-toggle="offcanvas"
+          data-bs-target="#offcanvasNavbar"
+          aria-controls="offcanvasNavbar"
+          aria-label="Toggle navigation"
+        >
+          <span class="navbar-toggler-icon"></span>
+        </button>
+      </div>
+    </nav>
+    <!--end Navbar -->
+    <!-- Hero Section -->
+    <section class="hero-section">
+      <div
+        class="container d-flex align-items-center justify-content-center fs-1 text-white flex-column"
+      >
+        <h1>Datasets</h1>
+        <h2>
+          Explore our curated collection of datasets, meticulously organized and
+          ready to fuel your data-driven projects. Whether you're a researcher,
+          analyst, or developer, our diverse range of datasets offers valuable
+          insights and opportunities for discovery. Dive into our repository and
+          unlock the potential of data to drive innovation and informed
+          decision-making.
+        </h2>
+      </div>
+    </section>
+    <!--end Hero Section -->
+    <!-- Datasets List -->
+    <section class="datasets-section py-5">
+        <div class="container">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h2>Available Datasets</h2>
+                <button id="addDatasetBtn" class="btn btn-success">Add Dataset</button>
+            </div>
+
+            <div class="list-group" id="datasetList">
+                <a href="#" class="list-group-item list-group-item-action">
+                    <h5 class="mb-1">Dataset 1</h5>
+                    <p class="mb-1">General description of Dataset 1.</p>
+                </a>
+                <a href="#" class="list-group-item list-group-item-action">
+                    <h5 class="mb-1">Dataset 2</h5>
+                    <p class="mb-1">General description of Dataset 2.</p>
+                </a>
+                <a href="#" class="list-group-item list-group-item-action">
+                    <h5 class="mb-1">Dataset 3</h5>
+                    <p class="mb-1">General description of Dataset 3.</p>
+                </a>
+            </div>
+        </div>
+    </section>
+    <!--end Datasets List-->
+    <!-- Bootstrap JS-->
+    <script
+      src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js"
+      integrity="sha384-FKyoEForCGlyvwx9Hj09JcYn3nv7wiPVlz7YYwJrWVcXK/BmnVDxM+D2scQbITxI"
+      crossorigin="anonymous"
+    ></script>
+  </body>
+</html>

@@ -1,0 +1,162 @@
+.navbar{
+    background-color: #fff;
+    height: 80px;
+    margin: 20px;
+    border-radius: 16px;
+    padding: 0.5rem;
+}
+
+
+.navbar-brand{
+    font-weight: 500;
+    color: #009970;
+    font-size: 24px;
+    transition: 0.3s color;
+}
+
+.login-button{
+    background-color: #009970;
+    color: #fff;
+    font-size: 14px;
+    padding: 8px 20px;
+    border-radius: 50px;
+    text-decoration: none;
+    transition:0.3s background-color;
+}
+
+.login-button:hover{
+    background-color: #00b383;
+}
+
+.navbar-toggler{
+    border: none;
+    font-size: 1.25rem;
+}
+
+.navbar-toggler:focus, .btn-close:focus{
+    box-shadow: none;
+    outline: none;
+}
+
+.nav-link{
+    color: #666777;
+    font-weight: 500;
+    position: relative;
+}
+
+.nav-link:hover, .nav-link:active{
+    color: #000;
+}
+
+@media(min-width: 991px){
+    .nav-link{
+        margin-right: 20px;
+    }
+
+    .nav-link::before{
+        content: "";
+        position:absolute;
+        bottom: 0;
+        left: 50%;
+        transform: translateX(-50%);
+        width:0;
+        height: 2px;
+        background-color: #009970;
+        visibility: hidden;
+        transition: 0.3s ease-in-out;
+    }
+
+    .nav-link:hover::before, .nav-link.active::before{
+        width: 100%;
+        visibility: visible;
+    }
+}
+
+.hero-section{
+    background: url(../assets/img/fondo.jpg)no-repeat center;
+    background-size: cover;
+    width: 100%;
+    height: 100vh;
+    opacity: 0.8;
+}
+
+.hero-section .container{
+    height: 100vh;
+    z-index: 1;
+    position: relative;
+}
+.hero-section::before{
+    background-color: rgba(5, 87, 9, 0.6);
+    content: "";
+    position: absolute;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    left : 0;
+}
+
+.hero-section h1{
+    font-size: 3rem;
+}
+
+.hero-section h2{
+    font-size: 1.4rem;
+    font-weight: 400;
+    z-index: 1;
+    max-width: 700px;
+}
+
+section.py-5 {
+    padding-top: 6rem !important;   
+    padding-bottom: 6rem !important; 
+    min-height: 70vh;              
+    background-color: #f8f9fa;     
+}
+
+.datasets-section {
+    padding: 60px 0;
+}
+
+.datasets-section h2 {
+    font-size: 2rem;
+    color: #009970;
+    margin-bottom: 20px;
+}
+
+/* Add Dataset Button */
+#addDatasetBtn {
+    background-color: #009970;
+    color: white;
+    font-weight: 500;
+    border-radius: 50px;
+    padding: 8px 20px;
+    transition: 0.3s;
+}
+
+#addDatasetBtn:hover {
+    background-color: #00b383;
+    color: white;
+}
+
+
+.list-group-item {
+    border-radius: 12px;
+    margin-bottom: 10px;
+    transition: 0.3s;
+}
+
+.list-group-item:hover {
+    background-color: #f0f9f4;
+}
+
+.list-group-item h5 {
+    font-weight: 600;
+    color: #00593f;
+}
+
+.list-group-item p {
+    margin: 0;
+    color: #555;
+    font-size: 0.95rem;
+}
+

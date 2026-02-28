@@ -1,10 +1,136 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>Title</title>
-</head>
-<body>
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Globalytics</title>
+        <link
+            href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css"
+            rel="stylesheet"
+            integrity="sha384-sRIl4kxILFvY47J16cr9ZwB07vP4J8+LH7qKQnuqkuIAvNWLzeN8tE5YBujZqJLB"
+            crossorigin="anonymous" />
+        <link rel="stylesheet" href="./css/styles.css" />
+    </head>
+    <body> 
+        <!-- Navbar -->
+        <nav class="navbar navbar-expand-lg fixed-top">
+            <div class="container-fluid">
+                <a class="navbar-brand me-auto" href="#">Logo</a>
+                
+                <div
+                    class="offcanvas offcanvas-end"
+                    tabindex="-1"
+                    id="offcanvasNavbar"
+                    aria-labelledby="offcanvasNavbarLabel">
+                    <div class="offcanvas-header">
+                        <h5 class="offcanvas-title"
+                            id="offcanvasNavbarLabel">Logo</h5>
+                        <button
+                            type="button"
+                            class="btn-close"
+                            data-bs-dismiss="offcanvas"
+                            aria-label="Close"></button>
+                    </div>
+                    <div class="offcanvas-body">
+                        <ul
+                            class="navbar-nav justify-content-center flex-grow-1 pe-3">
+                            <li class="nav-item">
+                                <a class="nav-link mx-lg-2 active" href="#">Home</a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link mx-lg-2" href="datasets.html">Datasets</a>
+                            </li>
+                            <li class="nav-item">
+                              <a class="nav-link mx-lg-2" href="chatbot.html">Chatbot</a>
+                            </li>
+                            <li class="nav-item">
+                               <a class="nav-link mx-lg-2" href="analytics.html">Analytics</a>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+                <a href="#" class="login-button">Login</a>
+                <button
+                    class="navbar-toggler pe-0"
+                    type="button"
+                    data-bs-toggle="offcanvas"
+                    data-bs-target="#offcanvasNavbar"
+                    aria-controls="offcanvasNavbar"
+                    aria-label="Toggle navigation">
+                    <span class="navbar-toggler-icon"></span>
+                </button>
+            </div>
+        </nav>
+        <!--end Navbar -->
 
-</body>
+        <!-- Hero Section -->
+        <section class="hero-section">
+            <div class="container d-flex align-items-center justify-content-center fs-1 text-white flex-column">
+                <h1>Globalytics</h1>
+                <h2>Turning Data into Decisions.</h2>
+            </div>
+        </section>
+        <!--end Hero Section -->
+
+       <!-- About Us Section -->
+    <section class="about-us py-5 bg-light">
+        <div class="container">
+            <h2 class="text-center mb-5" style="color:#009970;">About Us</h2>
+            <p class="text-center mb-5">Some Famous quotes we said during our HackUDC 2026 project:</p>
+            
+            <div class="row justify-content-center g-4">
+                <!-- Participant 1 -->
+                <div class="col-md-3 col-sm-6">
+                    <div class="card text-center shadow-sm h-100">
+                        <img src="./assets/img/fotop.jpg" class="card-img-top rounded-circle mx-auto mt-3"  style="width:120px; height:120px; object-fit:cover;">
+                        <div class="card-body">
+                            <h5 class="card-title">Jesús José Santamaría Santos</h5>
+                            <p class="card-text">A hackaton is like a toxic relationship with your own time and energy.</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Participant 2 -->
+                <div class="col-md-3 col-sm-6">
+                    <div class="card text-center shadow-sm h-100">
+                        <img src="./assets/img/fotop.jpg" class="card-img-top rounded-circle mx-auto mt-3" style="width:120px; height:120px; object-fit:cover;">
+                        <div class="card-body">
+                            <h5 class="card-title">Raúl</h5>
+                            <p class="card-text">Computer Science student with an interest in machine learning and backend development.</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Participant 3 -->
+                <div class="col-md-3 col-sm-6">
+                    <div class="card text-center shadow-sm h-100">
+                        <img src="./assets/img/fotop.jpg" class="card-img-top rounded-circle mx-auto mt-3" style="width:120px; height:120px; object-fit:cover;">
+                        <div class="card-body">
+                            <h5 class="card-title">Belén Cordo Carlés</h5>
+                            <p class="card-text">Where do i get my vegan durum?</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Participant 4 -->
+                <div class="col-md-3 col-sm-6">
+                    <div class="card text-center shadow-sm h-100">
+                        <img src="./assets/img/fotop.jpg" class="card-img-top rounded-circle mx-auto mt-3" style="width:120px; height:120px; object-fit:cover;">
+                        <div class="card-body">
+                            <h5 class="card-title">André Bóveda Tosar</h5>
+                            <p class="card-text">I love to see JJ working so hard, it drives me crazy!</p>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </section>
+
+        <!-- Bootstrap JS-->
+        <script
+            src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js"
+            integrity="sha384-FKyoEForCGlyvwx9Hj09JcYn3nv7wiPVlz7YYwJrWVcXK/BmnVDxM+D2scQbITxI"
+            crossorigin="anonymous"></script>
+    </body>
 </html>
