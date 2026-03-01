@@ -30,7 +30,3 @@ El proyecto sigue una arquitectura basada en análisis de datos y consultas inte
 - Importación de datasets en Denodo.
 - Creación de data sources.
 - Definición de relaciones (joins).
-
-### Metadata Discovery
-
-Uso del endpoint:
