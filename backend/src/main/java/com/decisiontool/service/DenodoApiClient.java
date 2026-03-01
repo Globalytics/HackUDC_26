@@ -79,7 +79,7 @@ public class DenodoApiClient {
      *
      * NOTA: sólo usamos request.getQuestion() porque tus DTOs no tienen más campos.
      */
-    public Mono<DenodoDataResponse> answerDataQuestion(String vdpDatabaseName, DenodoDataRequest request) {
+    public Mono<DenodoAnswerResponse> answerDataQuestion(String vdpDatabaseName, DenodoDataRequest request) {
         if (request == null || !StringUtils.hasText(request.getQuestion())) {
             return Mono.error(new IllegalArgumentException("DenodoDataRequest.question es obligatorio"));
         }
@@ -87,24 +87,25 @@ public class DenodoApiClient {
             return Mono.error(new IllegalArgumentException("vdpDatabaseName es obligatorio"));
         }
 
-        return denodoWebClient.get()
+        return denodoWebClient.post()
                 .uri(uriBuilder -> uriBuilder
                         .path("/answerDataQuestion")
-                        .queryParam("question", request.getQuestion())
-                        .queryParam("vdp_database_names", vdpDatabaseName) // ✅ AQUI
+                        .queryParam("vdp_database_names", vdpDatabaseName)
                         .queryParam("disclaimer", false)
                         .queryParam("check_ambiguity", false)
+                        .queryParam("question", request.getQuestion())
                         .build()
                 )
+                .bodyValue(request)
                 .retrieve()
                 .onStatus(HttpStatusCode::isError, r -> r.bodyToMono(String.class)
                         .defaultIfEmpty("Denodo /answerDataQuestion error")
                         .flatMap(msg -> Mono.error(new RuntimeException(msg))))
-                .bodyToMono(DenodoDataResponse.class)
+                .bodyToMono(DenodoAnswerResponse.class)
                 .retryWhen(defaultRetry());
     }
 
-    public Mono<DenodoMetadataResponse> answerMetadataQuestion(String vdpDatabaseName, DenodoMetadataRequest request) {
+    public Mono<DenodoAnswerResponse> answerMetadataQuestion(String vdpDatabaseName, DenodoMetadataRequest request) {
         if (request == null || !StringUtils.hasText(request.getQuestion())) {
             return Mono.error(new IllegalArgumentException("DenodoMetadataRequest.question es obligatorio"));
         }
@@ -112,20 +113,22 @@ public class DenodoApiClient {
             return Mono.error(new IllegalArgumentException("vdpDatabaseName es obligatorio"));
         }
 
-        return denodoWebClient.get()
+        return denodoWebClient.post()
                 .uri(uriBuilder -> uriBuilder
                         .path("/answerMetadataQuestion")
-                        .queryParam("question", request.getQuestion())
-                        .queryParam("vdp_database_names", vdpDatabaseName) // ✅ AQUI
+                        .queryParam("vdp_database_names", vdpDatabaseName)
                         .queryParam("disclaimer", false)
                         .queryParam("check_ambiguity", false)
+                        // compat: si Denodo también lee `question` por query, lo dejamos
+                        .queryParam("question", request.getQuestion())
                         .build()
                 )
+                .bodyValue(request) // ✅ ahora sí viaja context
                 .retrieve()
                 .onStatus(HttpStatusCode::isError, r -> r.bodyToMono(String.class)
                         .defaultIfEmpty("Denodo /answerMetadataQuestion error")
                         .flatMap(msg -> Mono.error(new RuntimeException(msg))))
-                .bodyToMono(DenodoMetadataResponse.class)
+                .bodyToMono(DenodoAnswerResponse.class)
                 .retryWhen(defaultRetry());
     }
 

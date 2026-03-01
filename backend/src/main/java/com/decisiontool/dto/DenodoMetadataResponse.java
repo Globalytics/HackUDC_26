@@ -1,51 +1,97 @@
 package com.decisiontool.dto;
 
+import com.fasterxml.jackson.annotation.JsonAlias;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+
 import java.util.List;
 import java.util.Map;
 
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class DenodoMetadataResponse {
-
     private String answer;
-    private List<String> relevantViews;
-    private Map<String, List<String>> columns;
-    private boolean success;
-    private String errorMessage;
 
-    public DenodoMetadataResponse() {}
+    @JsonAlias({"sql_query","sqlQuery"})
+    private String sqlQuery;
 
-    public DenodoMetadataResponse(String answer, List<String> relevantViews,
-                                  Map<String, List<String>> columns,
-                                  boolean success, String errorMessage) {
-        this.answer = answer; this.relevantViews = relevantViews; this.columns = columns;
-        this.success = success; this.errorMessage = errorMessage;
+    @JsonAlias({"query_explanation","queryExplanation"})
+    private String queryExplanation;
+
+    @JsonAlias({"tokens"})
+    private Map<String, Object> tokens;
+
+    @JsonAlias({"execution_result","executionResult"})
+    private Map<String, Object> executionResult;
+
+    @JsonAlias({"related_questions","relatedQuestions"})
+    private List<String> relatedQuestions;
+
+    @JsonAlias({"tables_used","tablesUsed"})
+    private List<String> tablesUsed;
+
+    @JsonAlias({"raw_graph","rawGraph"})
+    private String rawGraph;
+
+    public String getAnswer() {
+        return this.answer;
     }
 
-    public static Builder builder() { return new Builder(); }
-
-    public static class Builder {
-        private String answer, errorMessage;
-        private List<String> relevantViews;
-        private Map<String, List<String>> columns;
-        private boolean success;
-
-        public Builder answer(String v)                        { this.answer = v; return this; }
-        public Builder relevantViews(List<String> v)           { this.relevantViews = v; return this; }
-        public Builder columns(Map<String, List<String>> v)    { this.columns = v; return this; }
-        public Builder success(boolean v)                      { this.success = v; return this; }
-        public Builder errorMessage(String v)                  { this.errorMessage = v; return this; }
-        public DenodoMetadataResponse build() {
-            return new DenodoMetadataResponse(answer, relevantViews, columns, success, errorMessage);
-        }
+    public void setAnswer(final String answer) {
+        this.answer = answer;
     }
 
-    public String getAnswer()                        { return answer; }
-    public List<String> getRelevantViews()           { return relevantViews; }
-    public Map<String, List<String>> getColumns()    { return columns; }
-    public boolean isSuccess()                       { return success; }
-    public String getErrorMessage()                  { return errorMessage; }
-    public void setAnswer(String v)                  { this.answer = v; }
-    public void setRelevantViews(List<String> v)     { this.relevantViews = v; }
-    public void setColumns(Map<String, List<String>> v) { this.columns = v; }
-    public void setSuccess(boolean v)                { this.success = v; }
-    public void setErrorMessage(String v)            { this.errorMessage = v; }
+    public String getSqlQuery() {
+        return this.sqlQuery;
+    }
+
+    public void setSqlQuery(final String sqlQuery) {
+        this.sqlQuery = sqlQuery;
+    }
+
+    public String getQueryExplanation() {
+        return this.queryExplanation;
+    }
+
+    public void setQueryExplanation(final String queryExplanation) {
+        this.queryExplanation = queryExplanation;
+    }
+
+    public Map<String, Object> getTokens() {
+        return this.tokens;
+    }
+
+    public void setTokens(final Map<String, Object> tokens) {
+        this.tokens = tokens;
+    }
+
+    public Map<String, Object> getExecutionResult() {
+        return this.executionResult;
+    }
+
+    public void setExecutionResult(final Map<String, Object> executionResult) {
+        this.executionResult = executionResult;
+    }
+
+    public List<String> getRelatedQuestions() {
+        return this.relatedQuestions;
+    }
+
+    public void setRelatedQuestions(final List<String> relatedQuestions) {
+        this.relatedQuestions = relatedQuestions;
+    }
+
+    public List<String> getTablesUsed() {
+        return this.tablesUsed;
+    }
+
+    public void setTablesUsed(final List<String> tablesUsed) {
+        this.tablesUsed = tablesUsed;
+    }
+
+    public String getRawGraph() {
+        return this.rawGraph;
+    }
+
+    public void setRawGraph(final String rawGraph) {
+        this.rawGraph = rawGraph;
+    }
 }

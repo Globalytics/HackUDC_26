@@ -1,15 +1,12 @@
 package com.decisiontool.service;
 
-import com.decisiontool.dto.ChatRequest;
-import com.decisiontool.dto.ChatResponse;
-import com.decisiontool.dto.DenodoAnswerQuestionResponse;
+import com.decisiontool.dto.*;
 import com.decisiontool.model.ChatMessage;
 import com.decisiontool.model.ChatSession;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
-import com.fasterxml.jackson.core.type.TypeReference;
 
 import java.time.LocalDateTime;
 import java.util.*;
@@ -49,23 +46,155 @@ public class DenodoChatService {
                     .build();
         }
 
+        String vdpDatabaseName = request.getDatasetId();
+        if (vdpDatabaseName == null || vdpDatabaseName.isBlank()) {
+            return ChatResponse.builder()
+                    .sessionId(session.getId())
+                    .error(true)
+                    .errorMessage("El campo 'datasetId' es obligatorio (vdp_database_names).")
+                    .build();
+        }
+
         try {
-            Map<String, Object> body = Map.of("question", question);
+            // 1) METADATA primero
+            DenodoMetadataRequest metadataReq = DenodoMetadataRequest.builder()
+                    .question(question)
+                    .context("") // mejor string vacío que null
+                    .build();
 
-            // 🔹 Denodo te devuelve un String que en realidad es JSON (a veces escapado)
-            String raw = denodoApiClient.answerQuestion(request.getDatasetId(), body).block();
-            if (raw == null) raw = "";
+            DenodoAnswerResponse metadata = denodoApiClient
+                    .answerMetadataQuestion(vdpDatabaseName, metadataReq)
+                    .block();
 
-            DenodoAnswerQuestionResponse denodo = tryParseDenodo(raw);
+            if (metadata == null) {
+                return ChatResponse.builder()
+                        .sessionId(session.getId())
+                        .error(true)
+                        .errorMessage("Denodo /answerMetadataQuestion devolvió null.")
+                        .build();
+            }
 
-            // ✅ Answer limpio
-            String finalAnswer = extractBestAnswer(raw, denodo);
+            // Campos “oficiales” según schema
+            String metadataAnswer = metadata.getAnswer();
+            String sqlQuery = metadata.getSqlQuery(); // puede venir vacío en metadata
+            String queryExplanation = metadata.getQueryExplanation();
+            List<String> tablesUsed = metadata.getTablesUsed();
+            String rawGraph = metadata.getRawGraph();
 
-            // ✅ tableData (si Denodo trae execution_result)
-            List<Map<String, Object>> tableData = extractTableData(denodo);
+            // 2) Contexto base (si tu builder mete algo útil)
+            String baseContext = contextBuilder.buildContext(metadata, null, question);
+            if (baseContext == null) baseContext = "";
 
-            // ✅ metrics (tiempos, tokens, sql, etc.)
-            Map<String, Object> metrics = buildMetrics(denodo);
+            // 3) Construimos CONTEXTO para /answerDataQuestion usando tables_used + raw_graph
+            StringBuilder ctx = new StringBuilder();
+
+            ctx.append("INSTRUCCIONES (para responder con DATOS):\n")
+                    .append("- Genera UNA única VQL ejecutable y ejecútala.\n")
+                    .append("- Devuelve como máximo 10 filas si aplica.\n")
+                    .append("- Si el usuario pide 'más recientes' y no existe columna fecha/timestamp,\n")
+                    .append("  usa como proxy un ID numérico (p.ej. *id, *_id, raceId) y ORDER BY DESC.\n")
+                    .append("- Prioriza las tablas/vistas sugeridas en 'tables_used'.\n\n");
+
+            if (tablesUsed != null && !tablesUsed.isEmpty()) {
+                ctx.append("TABLAS/VISTAS SUGERIDAS (tables_used):\n");
+                for (String t : tablesUsed) {
+                    ctx.append("- ").append(t).append("\n");
+                }
+                ctx.append("\n");
+            }
+
+            if (rawGraph != null && !rawGraph.isBlank()) {
+                ctx.append("GRAFO/INFO CRUDA (raw_graph):\n")
+                        .append(rawGraph.trim())
+                        .append("\n\n");
+            }
+
+            if (!baseContext.isBlank()) {
+                ctx.append("CONTEXTO ADICIONAL (builder):\n")
+                        .append(baseContext.trim())
+                        .append("\n\n");
+            }
+
+            if (metadataAnswer != null && !metadataAnswer.isBlank()) {
+                ctx.append("RESUMEN METADATA (answer de metadata):\n")
+                        .append(metadataAnswer.trim())
+                        .append("\n\n");
+            }
+
+            // Si metadata trae SQL (a veces), lo incluimos como pista, pero NO dependemos de ello
+            if (sqlQuery != null && !sqlQuery.isBlank()) {
+                ctx.append("SQL/VQL sugerida por metadata (si es útil):\n")
+                        .append(sqlQuery.trim())
+                        .append("\n\n");
+            }
+
+            if (queryExplanation != null && !queryExplanation.isBlank()) {
+                ctx.append("Explicación de la SQL/VQL:\n")
+                        .append(queryExplanation.trim())
+                        .append("\n\n");
+            }
+
+            String context = ctx.toString().trim();
+
+            // 4) DATA después (la API de data ejecuta VQL y trae resultados)
+            DenodoDataRequest dataReq = DenodoDataRequest.builder()
+                    .question(question)
+                    .context(context)
+                    .viewName(null)  // no dependemos de esto
+                    .sqlQuery(null)  // no dependemos de esto
+                    .build();
+
+            DenodoAnswerResponse data = denodoApiClient
+                    .answerDataQuestion(vdpDatabaseName, dataReq)
+                    .block();
+
+            // Respuesta final (prioriza data.answer)
+            String finalAnswer;
+            if (data != null && data.getAnswer() != null && !data.getAnswer().isBlank()) {
+                finalAnswer = data.getAnswer();
+            } else if (metadataAnswer != null && !metadataAnswer.isBlank()) {
+                finalAnswer = metadataAnswer;
+            } else {
+                finalAnswer = "No se obtuvo respuesta de Denodo.";
+            }
+
+            // ✅ tableData: extraer filas desde execution_result (sin tocar ChatResponse)
+            List<Map<String, Object>> tableData = null;
+
+            if (data != null && data.getExecutionResult() != null) {
+                Object rowsObj = data.getExecutionResult().get("rows");
+                if (rowsObj == null) rowsObj = data.getExecutionResult().get("data");
+                if (rowsObj == null) rowsObj = data.getExecutionResult().get("result");
+
+                if (rowsObj instanceof List<?>) {
+                    List<?> list = (List<?>) rowsObj;
+
+                    List<Map<String, Object>> parsed = new ArrayList<>();
+                    for (Object item : list) {
+                        if (item instanceof Map<?, ?>) {
+                            @SuppressWarnings("unchecked")
+                            Map<String, Object> row = (Map<String, Object>) item;
+                            parsed.add(row);
+                        }
+                    }
+
+                    if (!parsed.isEmpty()) {
+                        tableData = parsed;
+                    }
+                }
+            }
+
+            // metrics: para depurar el flujo y justificar eficiencia
+            Map<String, Object> metrics = new LinkedHashMap<>();
+            metrics.put("tables_used", tablesUsed);
+            metrics.put("raw_graph_present", rawGraph != null && !rawGraph.isBlank());
+            metrics.put("metadata_sql_query_present", sqlQuery != null && !sqlQuery.isBlank());
+            metrics.put("metadata_query_explanation_present", queryExplanation != null && !queryExplanation.isBlank());
+            metrics.put("context_length", context.length());
+
+            if (data != null && data.getExecutionResult() != null) {
+                metrics.put("execution_result_keys", data.getExecutionResult().keySet());
+            }
 
             addToHistory(session, ChatMessage.Role.USER, question);
             addToHistory(session, ChatMessage.Role.ASSISTANT, finalAnswer);
@@ -98,7 +227,7 @@ public class DenodoChatService {
         if (sessionId != null && sessions.containsKey(sessionId)) {
             return sessions.get(sessionId);
         }
-        String id = sessionId != null ? sessionId : UUID.randomUUID().toString();
+        String id = (sessionId != null) ? sessionId : UUID.randomUUID().toString();
         ChatSession session = ChatSession.builder()
                 .id(id)
                 .createdAt(LocalDateTime.now())
@@ -106,21 +235,6 @@ public class DenodoChatService {
                 .build();
         sessions.put(id, session);
         return session;
-    }
-
-    private List<Map<String, Object>> extractTableData(DenodoAnswerQuestionResponse denodo) {
-        if (denodo == null || denodo.getExecutionResult() == null) return null;
-
-        // execution_result suele ser {"Row 1":[{...}], "Row 2":[{...}]...}
-        Object first = denodo.getExecutionResult().values().stream().findFirst().orElse(null);
-        if (first == null) return null;
-
-        try {
-            return objectMapper.convertValue(first, new TypeReference<List<Map<String, Object>>>() {});
-        } catch (Exception e) {
-            log.debug("No se pudo convertir execution_result a tableData", e);
-            return null;
-        }
     }
 
     private void addToHistory(ChatSession session, ChatMessage.Role role, String content) {
@@ -131,67 +245,5 @@ public class DenodoChatService {
                 .timestamp(LocalDateTime.now())
                 .build();
         session.addMessage(msg);
-    }
-
-    /**
-     * Denodo a veces devuelve:
-     *  1) JSON normal: {"answer":"...","sql_query":"..."}
-     *  2) JSON escapado dentro de un string: "{\"answer\":\"...\"...}"
-     *
-     * Este método intenta parsear ambas variantes.
-     */
-    private DenodoAnswerQuestionResponse tryParseDenodo(String raw) {
-        String trimmed = raw.trim();
-        if (trimmed.isEmpty()) return null;
-
-        try {
-            // Caso 1: ya es JSON objeto
-            if (trimmed.startsWith("{")) {
-                return objectMapper.readValue(trimmed, DenodoAnswerQuestionResponse.class);
-            }
-
-            // Caso 2: viene como string JSON escapado (p.ej. "\"{\\\"answer\\\":...}\"")
-            // Intentamos des-serializar a String primero, y luego a objeto.
-            if (trimmed.startsWith("\"")) {
-                String unescapedJson = objectMapper.readValue(trimmed, String.class);
-                if (unescapedJson != null && unescapedJson.trim().startsWith("{")) {
-                    return objectMapper.readValue(unescapedJson, DenodoAnswerQuestionResponse.class);
-                }
-            }
-        } catch (Exception e) {
-            log.debug("No se pudo parsear respuesta Denodo como JSON. Se devolverá raw.", e);
-        }
-        return null;
-    }
-
-    private String extractBestAnswer(String raw, DenodoAnswerQuestionResponse denodo) {
-        if (denodo != null && denodo.getAnswer() != null && !denodo.getAnswer().isBlank()) {
-            return denodo.getAnswer();
-        }
-
-        // Si el raw era un JSON escapado dentro de comillas, intentamos extraer el "answer"
-        // ya cubierto por tryParseDenodo; si falló, devolvemos raw sin romper.
-        return raw.isBlank() ? "No se obtuvo respuesta de Denodo." : raw;
-    }
-
-    private Map<String, Object> buildMetrics(DenodoAnswerQuestionResponse denodo) {
-        if (denodo == null) return null;
-
-        Map<String, Object> metrics = new LinkedHashMap<>();
-        if (denodo.getSqlExecutionTime() != null) metrics.put("sql_execution_time", denodo.getSqlExecutionTime());
-        if (denodo.getVectorStoreSearchTime() != null) metrics.put("vector_store_search_time", denodo.getVectorStoreSearchTime());
-        if (denodo.getLlmTime() != null) metrics.put("llm_time", denodo.getLlmTime());
-        if (denodo.getTotalExecutionTime() != null) metrics.put("total_execution_time", denodo.getTotalExecutionTime());
-
-        if (denodo.getLlmProvider() != null) metrics.put("llm_provider", denodo.getLlmProvider());
-        if (denodo.getLlmModel() != null) metrics.put("llm_model", denodo.getLlmModel());
-
-        if (denodo.getTokens() != null) metrics.put("tokens", denodo.getTokens());
-        if (denodo.getTablesUsed() != null) metrics.put("tables_used", denodo.getTablesUsed());
-        if (denodo.getSqlQuery() != null) metrics.put("sql_query", denodo.getSqlQuery());
-        if (denodo.getQueryExplanation() != null) metrics.put("query_explanation", denodo.getQueryExplanation());
-        if (denodo.getRelatedQuestions() != null) metrics.put("related_questions", denodo.getRelatedQuestions());
-
-        return metrics.isEmpty() ? null : metrics;
     }
 }
