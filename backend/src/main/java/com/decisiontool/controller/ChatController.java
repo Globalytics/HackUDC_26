@@ -2,8 +2,14 @@ package com.decisiontool.controller;
 
 import com.decisiontool.dto.ChatRequest;
 import com.decisiontool.dto.ChatResponse;
+import com.decisiontool.model.ChatMessage;
+import com.decisiontool.model.ChatSession;
 import com.decisiontool.service.DenodoChatService;
 import jakarta.validation.Valid;
+
+import java.util.List;
+import java.util.Optional;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.ResponseEntity;
@@ -30,9 +36,10 @@ public class ChatController {
         log.info("POST /api/chat - pregunta: '{}'", request.getQuestion());
         ChatResponse response = chatService.process(request);
 
-        if (response.isError()) {
-            return ResponseEntity.internalServerError().body(response);
-        }
+        // Always return 200 so the frontend can inspect the error flag and message.
+        // This prevents generic "Chat failed (HTTP 500)" messages and avoids
+        // client-side "signal is aborted" errors when our backend already
+        // produced a meaningful error payload.
         return ResponseEntity.ok(response);
     }
 
@@ -41,9 +48,9 @@ public class ChatController {
      * GET /api/chat/{sessionId}/history
      */
     @GetMapping("/{sessionId}/history")
-    public ResponseEntity<?> history(@PathVariable String sessionId) {
-        return chatService.getSession(sessionId)
-                .<ResponseEntity<?>>map(session -> ResponseEntity.ok(session.getMessages()))
-                .orElseGet(() -> ResponseEntity.notFound().build());
-    }
+    public ResponseEntity<List<ChatMessage>> history(@PathVariable String sessionId) {
+    Optional<ChatSession> sessionOpt = chatService.getSession(sessionId);
+    if (sessionOpt.isEmpty()) return ResponseEntity.notFound().build();
+    return ResponseEntity.ok(sessionOpt.get().getMessages());
+}
 }

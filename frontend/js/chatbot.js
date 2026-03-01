@@ -9,7 +9,7 @@
 
 const CONFIG = {
   API_BASE_URL: "http://localhost:8080/api",
-  TIMEOUT_MS: 30000
+  TIMEOUT_MS: 300000
 };
 
 async function fetchWithTimeout(url, options = {}) {
