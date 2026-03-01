@@ -1,12 +1,12 @@
 package com.decisiontool.service;
 
+import com.decisiontool.config.DenodoConfig;
 import com.decisiontool.dto.DenodoAnswerQuestionResponse;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.stereotype.Service;
 
 import java.util.*;
-import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 @Service
@@ -15,21 +15,36 @@ public class DenodoAccessService {
     private static final String QUESTION_LIST_DATABASES =
             "Dime las bases de datos a las que tengo acceso. Devuelve SOLO los nombres de bases de datos.";
 
-    // Regex estricta: exige al menos un carácter alfanumérico a ambos lados del _
-    private static final Pattern DB_NAME_PATTERN = Pattern.compile("\\b([A-Za-z0-9]+_[A-Za-z0-9_]+)\\b");
+    private static final Pattern DB_NAME_PATTERN =
+            Pattern.compile("^[A-Za-z0-9][A-Za-z0-9_]{0,63}$");
+
+    private static final Set<String> DENYLIST = Set.of("admin", "a");
 
     private final DenodoApiClient denodoApiClient;
     private final ObjectMapper objectMapper;
+    private final DenodoConfig denodoConfig;
 
-    public DenodoAccessService(DenodoApiClient denodoApiClient, ObjectMapper objectMapper) {
+    public DenodoAccessService(DenodoApiClient denodoApiClient,
+                               ObjectMapper objectMapper,
+                               DenodoConfig denodoConfig) {
         this.denodoApiClient = denodoApiClient;
         this.objectMapper = objectMapper;
+        this.denodoConfig = denodoConfig;
     }
 
     public List<String> listAccessibleDatabases() {
+        // ✅ SIEMPRE usar vdpDatabaseName desde config
+        String vdpDatabaseName = denodoConfig.getVdpDatabaseName();
+        if (vdpDatabaseName == null || vdpDatabaseName.isBlank()) {
+            // Mejor fallar controlado que reventar con IllegalArgumentException
+            return List.of();
+        }
+
         Map<String, Object> body = Map.of("question", QUESTION_LIST_DATABASES);
 
-        String rawJson = denodoApiClient.answerQuestion(body).block();
+        String rawJson = denodoApiClient
+                .answerQuestion(denodoConfig.getVdpDatabaseName(), body).block();
+
         if (rawJson == null || rawJson.isBlank()) return List.of();
 
         DenodoAnswerQuestionResponse resp;
@@ -41,22 +56,21 @@ public class DenodoAccessService {
 
         Set<String> dbs = new LinkedHashSet<>();
 
-        // 1) Fuente buena: execution_result (estructurado)
         dbs.addAll(extractDbNamesFromExecutionResult(resp.getExecutionResult()));
 
-        // 2) Fuente buena: tables_used (tipo "f1_races.races")
         if (dbs.isEmpty()) {
             dbs.addAll(extractDbNamesFromTablesUsed(resp.getTablesUsed()));
         }
 
-        // 3) Fallback controlado: regex estricta sobre "answer"
         if (dbs.isEmpty()) {
-            dbs.addAll(extractDbNamesFromAnswerStrict(resp.getAnswer()));
+            dbs.addAll(extractDbNamesFromAnswerLoose(resp.getAnswer()));
         }
 
         return dbs.stream()
-                .filter(s -> s != null && !s.isBlank())
+                .filter(Objects::nonNull)
                 .map(String::trim)
+                .filter(s -> !s.isBlank())
+                .filter(this::isValidDbName)
                 .sorted(String.CASE_INSENSITIVE_ORDER)
                 .toList();
     }
@@ -66,16 +80,12 @@ public class DenodoAccessService {
         Set<String> out = new LinkedHashSet<>();
         if (executionResult == null || executionResult.isEmpty()) return out;
 
-        // Recorre profundo buscando maps con clave "value" (String)
         collectValueStringsDeep(executionResult, out);
 
-        // Filtra a nombres con underscore (tipo f1_races)
-        out.removeIf(s -> !DB_NAME_PATTERN.matcher(s).matches());
-
+        out.removeIf(s -> !isValidDbName(s));
         return out;
     }
 
-    @SuppressWarnings("unchecked")
     private void collectValueStringsDeep(Object node, Set<String> out) {
         if (node == null) return;
 
@@ -98,24 +108,33 @@ public class DenodoAccessService {
 
         for (String t : tablesUsed) {
             if (t == null) continue;
-            // Ej: "f1_races.races" => "f1_races"
+
             int dot = t.indexOf('.');
             if (dot > 0) {
-                String db = t.substring(0, dot);
-                if (DB_NAME_PATTERN.matcher(db).matches()) out.add(db);
+                String db = t.substring(0, dot).trim();
+                if (isValidDbName(db)) out.add(db);
             }
         }
         return out;
     }
 
-    private Set<String> extractDbNamesFromAnswerStrict(String answer) {
+    private Set<String> extractDbNamesFromAnswerLoose(String answer) {
         Set<String> out = new LinkedHashSet<>();
         if (answer == null || answer.isBlank()) return out;
 
-        Matcher m = DB_NAME_PATTERN.matcher(answer);
-        while (m.find()) {
-            out.add(m.group(1));
+        String[] tokens = answer.split("[\\s,;\\n\\r\\t\\-•]+");
+        for (String tok : tokens) {
+            String s = tok.trim();
+            if (isValidDbName(s)) out.add(s);
         }
         return out;
+    }
+
+    private boolean isValidDbName(String s) {
+        if (s == null) return false;
+        String v = s.trim();
+        if (v.isBlank()) return false;
+        if (!DB_NAME_PATTERN.matcher(v).matches()) return false;
+        return !DENYLIST.contains(v.toLowerCase());
     }
 }

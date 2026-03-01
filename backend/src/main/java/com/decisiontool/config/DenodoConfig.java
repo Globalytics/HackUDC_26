@@ -8,6 +8,7 @@ public class DenodoConfig {
     private String baseUrl;
     private String username;
     private String password;
+    private String vdpDatabaseName;
     private int timeoutSeconds;
     private int maxRetries;
 
@@ -19,6 +20,9 @@ public class DenodoConfig {
 
     public String getPassword() { return password; }
     public void setPassword(String password) { this.password = password; }
+
+    public String getVdpDatabaseName() { return vdpDatabaseName; }
+    public void setVdpDatabaseName(String vdpDatabaseName) { this.vdpDatabaseName = vdpDatabaseName; }
 
     public int getTimeoutSeconds() { return timeoutSeconds; }
     public void setTimeoutSeconds(int timeoutSeconds) { this.timeoutSeconds = timeoutSeconds; }

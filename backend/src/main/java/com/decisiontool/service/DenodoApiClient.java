@@ -49,9 +49,17 @@ public class DenodoApiClient {
     }
 
     /** POST /answerQuestion */
-    public Mono<String> answerQuestion(Object requestBody) {
+    public Mono<String> answerQuestion(String vdpDatabaseName, Object requestBody) {
+        if (vdpDatabaseName == null || vdpDatabaseName.isBlank()) {
+            return Mono.error(new IllegalArgumentException("vdpDatabaseName es obligatorio"));
+        }
+
         return denodoWebClient.post()
-                .uri("/answerQuestion")
+                .uri(uriBuilder -> uriBuilder
+                        .path("/answerQuestion")
+                        .queryParam("vdp_database_names", vdpDatabaseName)
+                        .build()
+                )
                 .bodyValue(requestBody)
                 .retrieve()
                 .onStatus(HttpStatusCode::isError, r ->
@@ -71,15 +79,19 @@ public class DenodoApiClient {
      *
      * NOTA: sólo usamos request.getQuestion() porque tus DTOs no tienen más campos.
      */
-    public Mono<DenodoDataResponse> answerDataQuestion(DenodoDataRequest request) {
+    public Mono<DenodoDataResponse> answerDataQuestion(String vdpDatabaseName, DenodoDataRequest request) {
         if (request == null || !StringUtils.hasText(request.getQuestion())) {
             return Mono.error(new IllegalArgumentException("DenodoDataRequest.question es obligatorio"));
+        }
+        if (!StringUtils.hasText(vdpDatabaseName)) {
+            return Mono.error(new IllegalArgumentException("vdpDatabaseName es obligatorio"));
         }
 
         return denodoWebClient.get()
                 .uri(uriBuilder -> uriBuilder
                         .path("/answerDataQuestion")
                         .queryParam("question", request.getQuestion())
+                        .queryParam("vdp_database_names", vdpDatabaseName) // ✅ AQUI
                         .queryParam("disclaimer", false)
                         .queryParam("check_ambiguity", false)
                         .build()
@@ -92,19 +104,19 @@ public class DenodoApiClient {
                 .retryWhen(defaultRetry());
     }
 
-    /**
-     * GET /answerMetadataQuestion (según Swagger)
-     * Fuerza disclaimer=false y check_ambiguity=false.
-     */
-    public Mono<DenodoMetadataResponse> answerMetadataQuestion(DenodoMetadataRequest request) {
+    public Mono<DenodoMetadataResponse> answerMetadataQuestion(String vdpDatabaseName, DenodoMetadataRequest request) {
         if (request == null || !StringUtils.hasText(request.getQuestion())) {
             return Mono.error(new IllegalArgumentException("DenodoMetadataRequest.question es obligatorio"));
+        }
+        if (!StringUtils.hasText(vdpDatabaseName)) {
+            return Mono.error(new IllegalArgumentException("vdpDatabaseName es obligatorio"));
         }
 
         return denodoWebClient.get()
                 .uri(uriBuilder -> uriBuilder
                         .path("/answerMetadataQuestion")
                         .queryParam("question", request.getQuestion())
+                        .queryParam("vdp_database_names", vdpDatabaseName) // ✅ AQUI
                         .queryParam("disclaimer", false)
                         .queryParam("check_ambiguity", false)
                         .build()

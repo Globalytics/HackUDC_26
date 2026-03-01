@@ -53,7 +53,7 @@ public class DenodoChatService {
             Map<String, Object> body = Map.of("question", question);
 
             // 🔹 Denodo te devuelve un String que en realidad es JSON (a veces escapado)
-            String raw = denodoApiClient.answerQuestion(body).block();
+            String raw = denodoApiClient.answerQuestion(request.getDatasetId(), body).block();
             if (raw == null) raw = "";
 
             DenodoAnswerQuestionResponse denodo = tryParseDenodo(raw);
